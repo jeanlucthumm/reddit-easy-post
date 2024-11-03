@@ -25,3 +25,7 @@ Use any of the following tools to run the script on demand:
 | REDDIT_PASS      | Password                 | Yes      |
 | REDDIT_CLIENTID  | Reddit API Client ID     | Yes      |
 | REDDIT_CLIENTSEC | Reddit API Client Secret | Yes      |
+
+See the following for how to get `REDDIT_CLIENTID` and `REDDIT_CLIENTSEC`:
+
+[https://www.reddit.com/r/redditdev/comments/hasnnc/where_do_i_find_the_reddit_client_id_and_secret](https://www.reddit.com/r/redditdev/comments/hasnnc/where_do_i_find_the_reddit_client_id_and_secret)
