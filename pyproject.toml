@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "reddit-easy-post"
+version = "0.1.0"
+description = "Easy to use YAML to Reddit posting via API"
+authors = ["Jean-Luc Thumm <jeanlucthumm@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
