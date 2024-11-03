@@ -5,9 +5,23 @@
 
 Define your Reddit post via YAML, run this script to post it to Reddit.
 
+## Usage
+
+1. Create a YAML file with the post contents
+2. Schedule or run `post.py`
+
 ## Input file format (YAML)
 
-TODO
+```yml
+type: text # Only text currently supported
+title: Sample Title
+subreddit: test # Omit the r/ prefix
+body: |
+    Multi line strings in YAML start with the '|' prefix.
+    Alternatively, you can use '>' instead of '|' if you don't want to preserve line breaks.
+    Or you can leave this empty for no body
+flair: example
+```
 
 ## Scheduling
 
