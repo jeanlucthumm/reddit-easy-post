@@ -8,7 +8,11 @@ Define your Reddit post via YAML, run this script to post it to Reddit.
 ## Usage
 
 1. Create a YAML file with the post contents
-2. Schedule or run `post.py`
+2. Schedule or run `post.py`:
+
+```sh
+poetry run main post --file <post-file.yaml>
+```
 
 ## Input file format (YAML)
 
