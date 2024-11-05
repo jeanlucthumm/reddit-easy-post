@@ -1,5 +1,5 @@
 {
-  description = "MatchPaw LLM API";
+  description = "Easy reddit posting script";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
