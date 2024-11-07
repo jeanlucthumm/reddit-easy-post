@@ -60,24 +60,72 @@ def get_reddit_instance():
         sys.exit(1)
 
 
+def list_flairs(reddit, subreddit_name):
+    """
+    List available flairs for the specified subreddit.
+    """
+    try:
+        subreddit = reddit.subreddit(subreddit_name)
+        flairs = list(subreddit.flair.link_templates.user_selectable())
+        if not flairs:
+            print(f"No available flairs found for r/{subreddit_name}.")
+            return
+        print(f"Available flairs for r/{subreddit_name}:")
+        for flair in flairs:
+            flair_text = flair.get("flair_text", "N/A")
+            flair_id = flair.get("flair_template_id", "N/A")
+            text_editable = flair.get("text_editable", False)
+            print(f" - {flair_text} (ID: {flair_id}, Editable: {text_editable})")
+    except Exception as e:
+        print(f"Error fetching flairs for r/{subreddit_name}: {e}")
+        sys.exit(1)
+
+
 def submit_post(reddit, config):
     """
     Submit the post to Reddit based on the configuration.
     """
     try:
         subreddit = reddit.subreddit(config["subreddit"])
-        submission = subreddit.submit(
-            title=config["title"], selftext=config.get("body", "")
-        )
-        print(f"Post submitted: {submission.url}")
 
-        if "flair" in config and config["flair"]:
-            try:
-                submission.flair.choose(config["flair"])
-                print(f"Flair '{config['flair']}' applied.")
-            except APIException as e:
-                print(f"Error applying flair: {e}")
+        # Handling flair
+        flair_id = None
+        flair_text = config.get("flair")
+        if flair_text:
+            flairs = list(subreddit.flair.link_templates.user_selectable())
+            desired_flair = next(
+                (flair for flair in flairs if flair.get("flair_text") == flair_text),
+                None,
+            )
+            if desired_flair:
+                flair_id = desired_flair.get("flair_template_id")
+                if not flair_id:
+                    print(f"Error: Flair ID not found for flair '{flair_text}'.")
+                    sys.exit(1)
+            else:
+                print(
+                    f"Error: Flair '{flair_text}' not found in r/{config['subreddit']}."
+                )
+                sys.exit(1)
 
+        # Submit the post with or without flair
+        if flair_id:
+            submission = subreddit.submit(
+                title=config["title"],
+                selftext=config.get("body", ""),
+                flair_id=flair_id,
+            )
+            print(f"Post submitted: {submission.url}")
+            print(f"Flair '{flair_text}' applied.")
+        else:
+            submission = subreddit.submit(
+                title=config["title"], selftext=config.get("body", "")
+            )
+            print(f"Post submitted: {submission.url}")
+
+    except APIException as e:
+        print(f"API Error submitting post: {e}")
+        sys.exit(1)
     except Exception as e:
         print(f"Error submitting post: {e}")
         sys.exit(1)
@@ -85,18 +133,25 @@ def submit_post(reddit, config):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Submit a Reddit post based on a YAML configuration file."
+        description="Submit a Reddit post or list available flairs for a subreddit."
     )
-    parser.add_argument(
-        "--file", required=True, help="Path to the YAML configuration file."
+
+    # Create mutually exclusive group for --file and --flairs
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--file", help="Path to the YAML configuration file.")
+    group.add_argument(
+        "--flairs", metavar="SUBREDDIT", help="List available flairs for a subreddit."
     )
+
     args = parser.parse_args()
 
-    config = load_config(args.file)
-    validate_config(config)
     reddit = get_reddit_instance()
-    submit_post(reddit, config)
 
-
-if __name__ == "__main__":
-    main()
+    if args.flairs:
+        # List flairs for the specified subreddit
+        list_flairs(reddit, args.flairs)
+    elif args.file:
+        # Proceed with submitting the post
+        config = load_config(args.file)
+        validate_config(config)
+        submit_post(reddit, config)
