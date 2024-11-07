@@ -24,7 +24,7 @@ body: |
     Multi line strings in YAML start with the '|' prefix.
     Alternatively, you can use '>' instead of '|' if you don't want to preserve line breaks.
     Or you can leave this empty for no body
-flair: f1905376-40e9-11e7-a0dc-0e2f53ef3712 # Optional. Use --flairs to get IDs
+flair: Sample Flair # Optional. Use --flairs to get names
 ```
 
 ## Scheduling
