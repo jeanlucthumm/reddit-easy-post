@@ -1,15 +1,15 @@
 # reddit-easy-post
 
-Define your Reddit post via YAML, run this script to post it to Reddit.
+Define your Reddit post via YAML, run this script to post it to Reddit. Ideal for scheduling using external tool.
 
 ## Usage
 
 1. Create a YAML file with the post contents
-2. (Optional) List available flairs for target subreddit. Take the ID of this
+2. (Optional) List available flairs for target subreddit.
 ```sh
 poetry run main --flairs <subreddit>
 ```
-3. Schedule or run `post.py`:
+3. Run the script:
 ```sh
 poetry run main --file <post-file.yaml>
 ```
@@ -31,8 +31,8 @@ flair: f1905376-40e9-11e7-a0dc-0e2f53ef3712 # Optional. Use --flairs to get IDs
 
 Use any of the following tools to run the script on demand:
 
-* `cron`
 * `at`
+* `cron`
 * `systemd` timers
 
 # Environment variables
