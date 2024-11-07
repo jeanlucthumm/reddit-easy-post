@@ -8,10 +8,13 @@ Define your Reddit post via YAML, run this script to post it to Reddit.
 ## Usage
 
 1. Create a YAML file with the post contents
-2. Schedule or run `post.py`:
-
+2. (Optional) List available flairs for target subreddit. Take the ID of this
 ```sh
-poetry run main post --file <post-file.yaml>
+poetry run main --flairs <subreddit>
+```
+3. Schedule or run `post.py`:
+```sh
+poetry run main --file <post-file.yaml>
 ```
 
 ## Input file format (YAML)
@@ -24,7 +27,7 @@ body: |
     Multi line strings in YAML start with the '|' prefix.
     Alternatively, you can use '>' instead of '|' if you don't want to preserve line breaks.
     Or you can leave this empty for no body
-flair: example
+flair: f1905376-40e9-11e7-a0dc-0e2f53ef3712 # Optional. Use --flairs to get IDs
 ```
 
 ## Scheduling
