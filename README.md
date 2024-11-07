@@ -1,8 +1,5 @@
 # reddit-easy-post
 
-> [!IMPORTANT]
-> Currently WIP, will remove this when ready to use. Feel free to file issues though!
-
 Define your Reddit post via YAML, run this script to post it to Reddit.
 
 ## Usage
