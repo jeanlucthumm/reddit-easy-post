@@ -81,6 +81,33 @@ def list_flairs(reddit, subreddit_name):
         sys.exit(1)
 
 
+def generate_example_yaml():
+    """
+    Generate and print an example YAML configuration file.
+    """
+    example_config = """# Example Reddit post configuration
+
+# Required fields
+type: text                          # Post type (currently only 'text' is supported)
+title: Your post title here         # Title of your Reddit post
+subreddit: nameofsubreddit          # Subreddit to post to (without the r/)
+
+# Optional fields
+body: |
+  This is the main content of your post.
+  
+  You can include multiple paragraphs.
+  
+  * Markdown formatting is supported
+  * Like bullet points
+  * And more
+
+# Optional flair (use --flairs SUBREDDIT to see available flairs)
+# flair: Discussion
+"""
+    print(example_config)
+
+
 def submit_post(reddit, config):
     """
     Submit the post to Reddit based on the configuration.
@@ -136,14 +163,24 @@ def main():
         description="Submit a Reddit post or list available flairs for a subreddit."
     )
 
-    # Create mutually exclusive group for --file and --flairs
+    # Create mutually exclusive group for command options
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--file", help="Path to the YAML configuration file.")
     group.add_argument(
         "--flairs", metavar="SUBREDDIT", help="List available flairs for a subreddit."
     )
+    group.add_argument(
+        "--example",
+        action="store_true",
+        help="Generate an example YAML configuration file.",
+    )
 
     args = parser.parse_args()
+
+    if args.example:
+        # Generate example YAML configuration
+        generate_example_yaml()
+        return
 
     reddit = get_reddit_instance()
 
