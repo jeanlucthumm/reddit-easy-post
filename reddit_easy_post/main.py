@@ -32,10 +32,17 @@ def validate_config(config):
         if field not in config:
             print(f"Error: Missing required field '{field}' in configuration.")
             sys.exit(1)
-    if config["type"] != "text":
+
+    valid_types = ["text", "video"]
+    if config["type"] not in valid_types:
         print(
-            f"Error: Unsupported post type '{config['type']}'. Only 'text' is supported."
+            f"Error: Unsupported post type '{config['type']}'. Supported types: {', '.join(valid_types)}"
         )
+        sys.exit(1)
+
+    # Validate type-specific required fields
+    if config["type"] == "video" and "video_path" not in config:
+        print("Error: Missing required field 'video_path' for video post.")
         sys.exit(1)
 
 
@@ -87,8 +94,12 @@ def generate_example_yaml():
     """
     example_config = """# Example Reddit post configuration
 
+####################
+# TEXT POST EXAMPLE
+####################
+
 # Required fields
-type: text                          # Post type (currently only 'text' is supported)
+type: text                          # Post type (options: text, video)
 title: Your post title here         # Title of your Reddit post
 subreddit: nameofsubreddit          # Subreddit to post to (without the r/)
 
@@ -104,6 +115,22 @@ body: |
 
 # Optional flair (use --flairs SUBREDDIT to see available flairs)
 # flair: Discussion
+
+####################
+# VIDEO POST EXAMPLE (uncomment to use)
+####################
+
+# type: video
+# title: Your video post title
+# subreddit: nameofsubreddit
+# video_path: /path/to/your/video.mp4
+
+# Optional video parameters
+# thumbnail_path: /path/to/thumbnail.jpg
+# videogif: false                   # Set to true for silent video/gif
+# nsfw: false                       # Set to true for NSFW content
+# spoiler: false                    # Set to true to mark as spoiler
+# flair: Video                      # Optional flair
 """
     print(example_config)
 
@@ -135,20 +162,59 @@ def submit_post(reddit, config):
                 )
                 sys.exit(1)
 
-        # Submit the post with or without flair
-        if flair_id:
-            submission = subreddit.submit(
-                title=config["title"],
-                selftext=config.get("body", ""),
-                flair_id=flair_id,
-            )
-            print(f"Post submitted: {submission.url}")
-            print(f"Flair '{flair_text}' applied.")
-        else:
-            submission = subreddit.submit(
-                title=config["title"], selftext=config.get("body", "")
-            )
-            print(f"Post submitted: {submission.url}")
+        # Check post type and submit accordingly
+        if config["type"] == "text":
+            # Submit text post with or without flair
+            if flair_id:
+                submission = subreddit.submit(
+                    title=config["title"],
+                    selftext=config.get("body", ""),
+                    flair_id=flair_id,
+                )
+                print(f"Post submitted: {submission.url}")
+                print(f"Flair '{flair_text}' applied.")
+            else:
+                submission = subreddit.submit(
+                    title=config["title"], selftext=config.get("body", "")
+                )
+                print(f"Post submitted: {submission.url}")
+
+        elif config["type"] == "video":
+            # Extract and validate video path
+            video_path = config["video_path"]
+            if not os.path.exists(video_path):
+                print(f"Error: Video file not found at '{video_path}'")
+                sys.exit(1)
+
+            # Prepare optional parameters
+            video_params = {
+                "title": config["title"],
+                "video_path": video_path,
+            }
+
+            # Add optional parameters if provided
+            if flair_id:
+                video_params["flair_id"] = flair_id
+
+            # Optional boolean parameters
+            for param in ["nsfw", "spoiler", "videogif"]:
+                if param in config:
+                    video_params[param] = config[param]
+
+            # Optional path parameters
+            if "thumbnail_path" in config:
+                if not os.path.exists(config["thumbnail_path"]):
+                    print(
+                        f"Warning: Thumbnail file not found at '{config['thumbnail_path']}'"
+                    )
+                else:
+                    video_params["thumbnail_path"] = config["thumbnail_path"]
+
+            # Submit the video
+            submission = subreddit.submit_video(**video_params)
+            print(f"Video post submitted: {submission.url}")
+            if flair_id:
+                print(f"Flair '{flair_text}' applied.")
 
     except APIException as e:
         print(f"API Error submitting post: {e}")
