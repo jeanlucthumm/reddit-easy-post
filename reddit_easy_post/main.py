@@ -252,9 +252,25 @@ def submit_post(reddit, config):
 
     except APIException as e:
         print(f"API Error submitting post: {e}")
+        # Try to extract more detailed information
+        if hasattr(e, "response") and hasattr(e.response, "text"):
+            print(f"Response content: {e.response.text}")
+        elif hasattr(e, "_raw"):
+            print(f"Raw response: {e._raw}")
+        sys.exit(1)
+    except PRAWException as e:
+        print(f"PRAW Exception: {e}")
+        # Try to extract more detailed information
+        if hasattr(e, "response") and hasattr(e.response, "text"):
+            print(f"Response content: {e.response.text}")
+        elif hasattr(e, "_raw"):
+            print(f"Raw response: {e._raw}")
         sys.exit(1)
     except Exception as e:
         print(f"Error submitting post: {e}")
+        # Try to get more info for requests-related exceptions
+        if hasattr(e, "response") and hasattr(e.response, "text"):
+            print(f"Response content: {e.response.text}")
         # Clean up temporary files if an exception occurs
         if (
             "temp_thumbnail" in locals()
