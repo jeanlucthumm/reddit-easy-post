@@ -1,6 +1,8 @@
 import argparse
 import os
 import sys
+import subprocess
+import tempfile
 
 import praw
 import yaml
@@ -135,6 +137,16 @@ body: |
     print(example_config)
 
 
+def extract_thumbnail(video_path, output_path):
+    """
+    Extract the first frame of a video as a thumbnail using ffmpeg.
+    """
+    subprocess.run(
+        ["ffmpeg", "-i", video_path, "-ss", "00:00:00", "-frames:v", "1", output_path],
+        check=True,
+    )
+
+
 def submit_post(reddit, config):
     """
     Submit the post to Reddit based on the configuration.
@@ -201,14 +213,32 @@ def submit_post(reddit, config):
                 if param in config:
                     video_params[param] = config[param]
 
-            # Optional path parameters
-            if "thumbnail_path" in config:
+            # Handle thumbnail - automatically generate if not provided
+            temp_thumbnail = None
+            if "thumbnail_path" in config and config["thumbnail_path"]:
                 if not os.path.exists(config["thumbnail_path"]):
                     print(
                         f"Warning: Thumbnail file not found at '{config['thumbnail_path']}'"
                     )
                 else:
                     video_params["thumbnail_path"] = config["thumbnail_path"]
+            else:
+                # Generate a thumbnail from the first frame
+                try:
+                    # Create a temporary file for the thumbnail
+                    fd, temp_thumbnail = tempfile.mkstemp(suffix=".jpg")
+                    os.close(fd)
+
+                    print(f"Generating thumbnail from video...")
+                    extract_thumbnail(video_path, temp_thumbnail)
+                    video_params["thumbnail_path"] = temp_thumbnail
+                    print(f"Thumbnail generated successfully")
+                except subprocess.CalledProcessError as e:
+                    print(f"Warning: Failed to generate thumbnail: {e}")
+                    # Continue without thumbnail if generation fails
+                    if temp_thumbnail and os.path.exists(temp_thumbnail):
+                        os.unlink(temp_thumbnail)
+                        temp_thumbnail = None
 
             # Submit the video
             submission = subreddit.submit_video(**video_params)
@@ -216,11 +246,22 @@ def submit_post(reddit, config):
             if flair_id:
                 print(f"Flair '{flair_text}' applied.")
 
+            # Clean up temporary thumbnail if we created one
+            if temp_thumbnail and os.path.exists(temp_thumbnail):
+                os.unlink(temp_thumbnail)
+
     except APIException as e:
         print(f"API Error submitting post: {e}")
         sys.exit(1)
     except Exception as e:
         print(f"Error submitting post: {e}")
+        # Clean up temporary files if an exception occurs
+        if (
+            "temp_thumbnail" in locals()
+            and temp_thumbnail
+            and os.path.exists(temp_thumbnail)
+        ):
+            os.unlink(temp_thumbnail)
         sys.exit(1)
 
 
