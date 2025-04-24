@@ -14,4 +14,6 @@
       install.enable = true;
     };
   };
+
+  dotenv.enable = true;
 }
