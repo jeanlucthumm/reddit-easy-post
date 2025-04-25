@@ -3,6 +3,7 @@ import os
 import sys
 import subprocess
 import tempfile
+import time
 
 import praw
 import yaml
@@ -115,6 +116,12 @@ body: |
   * Like bullet points
   * And more
 
+# Optional follow-up comment (posted 30 seconds after the initial post)
+# follow_up_comment: |
+#   This is a follow-up comment that will be posted 30 seconds after
+#   the initial post. This is useful for adding context, links, or
+#   additional information.
+
 # Optional flair (use --flairs SUBREDDIT to see available flairs)
 # flair: Discussion
 
@@ -126,6 +133,7 @@ body: |
 # title: Your video post title
 # subreddit: nameofsubreddit
 # video_path: /path/to/your/video.mp4
+# follow_up_comment: This is a follow-up comment for the video post
 
 # Optional video parameters
 # thumbnail_path: /path/to/thumbnail.jpg
@@ -259,6 +267,20 @@ def submit_post(reddit, config):
             # Clean up temporary thumbnail if we created one
             if temp_thumbnail and os.path.exists(temp_thumbnail):
                 os.unlink(temp_thumbnail)
+
+        # Handle follow-up comment if specified
+        if "follow_up_comment" in config and config["follow_up_comment"]:
+            follow_up_text = config["follow_up_comment"]
+            print(f"Waiting 30 seconds before posting follow-up comment...")
+            time.sleep(30)
+
+            try:
+                comment = submission.reply(follow_up_text)
+                print(f"Follow-up comment posted: {comment.permalink}")
+            except Exception as e:
+                print(f"Error posting follow-up comment: {e}")
+                if hasattr(e, "response") and hasattr(e.response, "text"):
+                    print(f"Response content: {e.response.text}")
 
     except APIException as e:
         print(f"API Error submitting post: {e}")
