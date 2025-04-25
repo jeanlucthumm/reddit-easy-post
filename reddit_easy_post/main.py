@@ -142,7 +142,17 @@ def extract_thumbnail(video_path, output_path):
     Extract the first frame of a video as a thumbnail using ffmpeg.
     """
     subprocess.run(
-        ["ffmpeg", "-i", video_path, "-ss", "00:00:00", "-frames:v", "1", output_path],
+        [
+            "ffmpeg",
+            "-y",
+            "-i",
+            video_path,
+            "-ss",
+            "00:00:00",
+            "-frames:v",
+            "1",
+            output_path,
+        ],
         check=True,
     )
 
