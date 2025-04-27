@@ -1,9 +1,12 @@
 {pkgs, ...}: {
   packages = with pkgs; [
+    # Python dev
     pyright
     black
     isort
     mypy
+
+    ffmpeg
   ];
 
   languages.python = {
