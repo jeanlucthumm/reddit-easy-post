@@ -11,10 +11,10 @@
 
   languages.python = {
     enable = true;
-    poetry = {
+    venv.enable = true;
+    uv = {
       enable = true;
-      activate.enable = true;
-      install.enable = true;
+      sync.enable = true;
     };
   };
 

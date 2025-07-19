@@ -13,17 +13,17 @@ reddit-easy-post is a Python CLI tool that automates Reddit posting via YAML con
 # Setup (using devenv)
 devenv shell
 
-# Install dependencies
-poetry install
+# Install dependencies (automatic with uv sync)
+uv sync
 
 # Run the main script
-poetry run main --file <post-file.yaml>
+uv run main --file <post-file.yaml>
 
 # List available flairs for a subreddit
-poetry run main --flairs <subreddit>
+uv run main --flairs <subreddit>
 
 # Generate example YAML configuration
-poetry run main --example
+uv run main --example
 ```
 
 ### Code Quality Tools
@@ -70,7 +70,7 @@ pyright reddit_easy_post/
 
 ### Dependencies
 - Python 3.12+
-- Poetry for dependency management
+- uv for dependency management
 - PRAW for Reddit API access
 - PyYAML for configuration parsing
 - FFmpeg for video processing (available in devenv)
