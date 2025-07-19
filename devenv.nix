@@ -5,6 +5,7 @@
     black
     isort
     mypy
+    ruff
 
     ffmpeg
   ];
