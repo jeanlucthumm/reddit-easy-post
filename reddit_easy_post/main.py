@@ -165,7 +165,7 @@ def extract_thumbnail(video_path, output_path):
     )
 
 
-def submit_post(reddit, config):
+def submit_post(reddit, config, config_dir):
     """
     Submit the post to Reddit based on the configuration.
     """
@@ -212,6 +212,9 @@ def submit_post(reddit, config):
         elif config["type"] == "video":
             # Extract and validate video path
             video_path = config["video_path"]
+            # Resolve relative video path against the YAML file directory
+            if not os.path.isabs(video_path):
+                video_path = os.path.join(config_dir, video_path)
             if not os.path.exists(video_path):
                 print(f"Error: Video file not found at '{video_path}'")
                 sys.exit(1)
@@ -234,12 +237,16 @@ def submit_post(reddit, config):
             # Handle thumbnail - automatically generate if not provided
             temp_thumbnail = None
             if "thumbnail_path" in config and config["thumbnail_path"]:
-                if not os.path.exists(config["thumbnail_path"]):
+                thumbnail_path = config["thumbnail_path"]
+                # Resolve relative thumbnail path against the YAML file directory
+                if not os.path.isabs(thumbnail_path):
+                    thumbnail_path = os.path.join(config_dir, thumbnail_path)
+                if not os.path.exists(thumbnail_path):
                     print(
-                        f"Warning: Thumbnail file not found at '{config['thumbnail_path']}'"
+                        f"Warning: Thumbnail file not found at '{thumbnail_path}'"
                     )
                 else:
-                    video_params["thumbnail_path"] = config["thumbnail_path"]
+                    video_params["thumbnail_path"] = thumbnail_path
             else:
                 # Generate a thumbnail from the first frame
                 try:
@@ -345,5 +352,6 @@ def main():
     elif args.file:
         # Proceed with submitting the post
         config = load_config(args.file)
+        config_dir = os.path.dirname(os.path.abspath(args.file))
         validate_config(config)
-        submit_post(reddit, config)
+        submit_post(reddit, config, config_dir)
