@@ -36,7 +36,7 @@ def validate_config(config):
             print(f"Error: Missing required field '{field}' in configuration.")
             sys.exit(1)
 
-    valid_types = ["text", "video"]
+    valid_types = ["text", "video", "image"]
     if config["type"] not in valid_types:
         print(
             f"Error: Unsupported post type '{config['type']}'. Supported types: {', '.join(valid_types)}"
@@ -46,6 +46,10 @@ def validate_config(config):
     # Validate type-specific required fields
     if config["type"] == "video" and "video_path" not in config:
         print("Error: Missing required field 'video_path' for video post.")
+        sys.exit(1)
+
+    if config["type"] == "image" and "image_path" not in config:
+        print("Error: Missing required field 'image_path' for image post.")
         sys.exit(1)
 
 
@@ -102,7 +106,7 @@ def generate_example_yaml():
 ####################
 
 # Required fields
-type: text                          # Post type (options: text, video)
+type: text                          # Post type (options: text, video, image)
 title: Your post title here         # Title of your Reddit post
 subreddit: nameofsubreddit          # Subreddit to post to (without the r/)
 
@@ -141,6 +145,21 @@ body: |
 # nsfw: false                       # Set to true for NSFW content
 # spoiler: false                    # Set to true to mark as spoiler
 # flair: Video                      # Optional flair
+
+####################
+# IMAGE POST EXAMPLE (uncomment to use)
+####################
+
+# type: image
+# title: Your image post title
+# subreddit: nameofsubreddit
+# image_path: /path/to/your/image.jpg
+
+# Optional image parameters
+# nsfw: false                       # Set to true for NSFW content
+# spoiler: false                    # Set to true to mark as spoiler
+# flair: Image                      # Optional flair
+# follow_up_comment: This is a follow-up comment for the image post
 """
     print(example_config)
 
@@ -274,6 +293,34 @@ def submit_post(reddit, config, config_dir):
             # Clean up temporary thumbnail if we created one
             if temp_thumbnail and os.path.exists(temp_thumbnail):
                 os.unlink(temp_thumbnail)
+
+        elif config["type"] == "image":
+            # Extract and validate image path
+            image_path = config["image_path"]
+            if not os.path.exists(image_path):
+                print(f"Error: Image file not found at '{image_path}'")
+                sys.exit(1)
+
+            # Prepare optional parameters
+            image_params = {
+                "title": config["title"],
+                "image_path": image_path,
+            }
+
+            # Add optional parameters if provided
+            if flair_id:
+                image_params["flair_id"] = flair_id
+
+            # Optional boolean parameters
+            for param in ["nsfw", "spoiler"]:
+                if param in config:
+                    image_params[param] = config[param]
+
+            # Submit the image
+            submission = subreddit.submit_image(**image_params)
+            print(f"Image post submitted: {submission.url}")
+            if flair_id:
+                print(f"Flair '{flair_text}' applied.")
 
         # Handle follow-up comment if specified
         if "follow_up_comment" in config and config["follow_up_comment"]:
